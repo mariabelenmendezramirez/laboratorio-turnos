@@ -18,7 +18,7 @@ const API_URL = 'http://127.0.0.1:8000/api';
         <div class="ticket-box" *ngIf="myTicket"><span class="muted-label">TU TURNO</span><strong>{{myTicket}}</strong><p *ngIf="myWindow">Tu turno es {{myTicket}}. Pasa a la <b>ventanilla {{myWindow}}</b>.</p><p *ngIf="!myWindow">Espera a que te llamen. Te avisaremos en la pantalla.</p></div>
         <div class="ticket-box placeholder" *ngIf="!myTicket"><span class="ticket-icon">01</span><span>Tu turno aparecerá aquí</span></div>
       </section>
-      <aside class="info-card"><div class="info-icon">◷</div><h2>¿Cómo funciona?</h2><ol><li><span>1</span>Toma un turno con el botón.</li><li><span>2</span>Espera a que aparezca tu número.</li><li><span>3</span>Acude a la ventanilla indicada.</li></ol><div class="wait-count"><span class="live-dot"></span>{{state?.waiting?.length ?? 0}} personas esperando</div></aside>
+      <aside class="info-card"><div class="info-icon">◷</div><h2>¿Cómo funciona?</h2><ol><li><span>1</span>Toma un turno con el botón.</li><li><span>2</span>Espera a que aparezca tu número.</li><li><span>3</span>Acude a la ventanilla indicada.</li></ol><div class="wait-count"><span class="live-dot"></span>{{state?.waiting?.length ?? 0}} {{(state?.waiting?.length ?? 0) === 1 ? 'persona' : 'personas'}} esperando</div></aside>
     </main>
     <main *ngIf="screen==='atencion'" class="staff-layout"><div class="page-heading"><div><div class="eyebrow"><span class="live-dot"></span> PANEL DE ATENCIÓN</div><h1>Ventanillas</h1><p class="lead">Gestiona la fila de atención en tiempo real.</p></div><div class="waiting-pill"><span class="live-dot"></span>{{state?.waiting?.length ?? 0}} en espera</div></div>
       <p class="error" *ngIf="error">{{error}}</p>
