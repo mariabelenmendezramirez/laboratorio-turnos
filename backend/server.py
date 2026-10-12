@@ -3,12 +3,15 @@ from datetime import date
 from contextlib import closing
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import hmac
+import os
 import sqlite3
 from pathlib import Path
 from urllib.parse import urlparse
 
 HOST, PORT = "127.0.0.1", 8000
 DB = Path(__file__).with_name("turnos.sqlite3")
+STAFF_PIN = os.environ.get("STAFF_PIN", "1234")
 
 
 def connect():
@@ -60,7 +63,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(payload)))
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-Staff-Pin')
         self.end_headers()
         self.wfile.write(payload)
 
@@ -77,6 +80,13 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', '0'))) or b'{}')
         except (ValueError, json.JSONDecodeError):
             return self.send_json(400, {"error": "JSON inválido"})
+        if path == '/api/staff/auth':
+            supplied_pin = body.get('pin')
+            if isinstance(supplied_pin, str) and hmac.compare_digest(supplied_pin, STAFF_PIN):
+                return self.send_json(200, {"authenticated": True})
+            return self.send_json(401, {"error": "PIN incorrecto"})
+        if path == '/api/finish' and not hmac.compare_digest(self.headers.get('X-Staff-Pin', ''), STAFF_PIN):
+            return self.send_json(401, {"error": "PIN requerido o incorrecto"})
         with closing(connect()) as conn:
             day = today(conn)
             if path == '/api/tickets':
@@ -108,6 +118,7 @@ if __name__ == '__main__':
     with closing(connect()) as db: today(db)
     print(f"API de turnos en http://localhost:{PORT} (SQLite: {DB})")
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
+
 
 
 
