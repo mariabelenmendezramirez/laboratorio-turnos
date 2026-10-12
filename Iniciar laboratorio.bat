@@ -63,6 +63,7 @@ if not exist "frontend\node_modules\@angular\cli\bin\ng.js" (
   )
   popd
 )
+set "NG_CLI_ANALYTICS=false"
 start "Laboratorio - API Python" /D "%~dp0backend" cmd /k ""%PYTHON_CMD%" server.py"
 start "Laboratorio - Angular" /D "%~dp0frontend" cmd /k ""%NODE_CMD%" node_modules\@angular\cli\bin\ng.js serve --host 0.0.0.0 --port 4200 --proxy-config proxy.conf.json"
 echo.
