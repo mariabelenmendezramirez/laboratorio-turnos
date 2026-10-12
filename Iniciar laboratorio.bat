@@ -6,17 +6,15 @@ where py >nul 2>nul && set "PYTHON_CMD=py"
 if not defined PYTHON_CMD (
   where python >nul 2>nul && set "PYTHON_CMD=python"
 )
+if defined PYTHON_CMD (
+  "%PYTHON_CMD%" --version >nul 2>nul
+  if errorlevel 1 set "PYTHON_CMD="
+)
 if not defined PYTHON_CMD (
   if exist "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" set "PYTHON_CMD=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
 )
 if not defined PYTHON_CMD (
   echo ERROR: No se encontro Python. Instala Python 3 desde https://www.python.org/downloads/windows/ y vuelve a ejecutar este archivo.
-  pause
-  exit /b 1
-)
-"%PYTHON_CMD%" --version >nul 2>nul
-if errorlevel 1 (
-  echo ERROR: Python se encontro, pero no se pudo ejecutar. Repara la instalacion o desactiva los alias de Microsoft Store en Configuracion.
   pause
   exit /b 1
 )
