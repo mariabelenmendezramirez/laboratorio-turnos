@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Subscription, interval, startWith, switchMap } from 'rxjs';
+import { EMPTY, Subscription, catchError, interval, startWith, switchMap } from 'rxjs';
 
 type WindowState = { window: number; ticket: string | null };
 type QueueState = { date: string; lastNumber: number; windows: WindowState[]; waiting: string[]; nextTicket: string };
@@ -36,7 +36,7 @@ export class AppComponent implements OnInit, OnDestroy {
   myTicket = ''; myWindow: number | null = null;
   private poll?: Subscription;
   ngOnInit(): void {
-    this.poll = interval(2000).pipe(startWith(0), switchMap(() => this.http.get<QueueState>(`${API_URL}/state`))).subscribe({ next: value => { this.state = value; this.connected = true; this.error = ''; if (this.myTicket) this.myWindow = value.windows.find(w => w.ticket === this.myTicket)?.window ?? null; }, error: () => { this.connected = false; this.error = 'No se pudo conectar con la API. Comprueba que el backend esté iniciado.'; } });
+    this.poll = interval(2000).pipe(startWith(0), switchMap(() => this.http.get<QueueState>(`${API_URL}/state`).pipe(catchError(() => { this.connected = false; this.error = 'No se pudo conectar con la API. Reintentando…'; return EMPTY; })))).subscribe({ next: value => { this.state = value; this.connected = true; this.error = ''; if (this.myTicket) this.myWindow = value.windows.find(w => w.ticket === this.myTicket)?.window ?? null; } });
   }
   takeTicket(): void {
     this.busy = true; this.error = '';
