@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.angular/
+backend/__pycache__/
+backend/turnos.sqlite3
+backend/turnos.sqlite3-shm
+backend/turnos.sqlite3-wal
