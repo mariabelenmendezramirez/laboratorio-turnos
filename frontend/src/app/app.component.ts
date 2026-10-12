@@ -5,6 +5,7 @@ import { Subscription, interval, startWith, switchMap } from 'rxjs';
 
 type WindowState = { window: number; ticket: string | null };
 type QueueState = { date: string; lastNumber: number; windows: WindowState[]; waiting: string[]; nextTicket: string };
+const API_URL = 'http://127.0.0.1:8000/api';
 
 @Component({
   selector: 'app-root', standalone: true, imports: [CommonModule],
@@ -35,15 +36,16 @@ export class AppComponent implements OnInit, OnDestroy {
   myTicket = ''; myWindow: number | null = null;
   private poll?: Subscription;
   ngOnInit(): void {
-    this.poll = interval(2000).pipe(startWith(0), switchMap(() => this.http.get<QueueState>('/api/state'))).subscribe({ next: value => { this.state = value; this.connected = true; this.error = ''; if (this.myTicket) this.myWindow = value.windows.find(w => w.ticket === this.myTicket)?.window ?? null; }, error: () => { this.connected = false; this.error = 'No se pudo conectar con la API. Comprueba que el backend esté iniciado.'; } });
+    this.poll = interval(2000).pipe(startWith(0), switchMap(() => this.http.get<QueueState>(`${API_URL}/state`))).subscribe({ next: value => { this.state = value; this.connected = true; this.error = ''; if (this.myTicket) this.myWindow = value.windows.find(w => w.ticket === this.myTicket)?.window ?? null; }, error: () => { this.connected = false; this.error = 'No se pudo conectar con la API. Comprueba que el backend esté iniciado.'; } });
   }
   takeTicket(): void {
     this.busy = true; this.error = '';
-    this.http.post<{ticket: string; window: number | null; state: QueueState}>('/api/tickets', {}).subscribe({ next: result => { this.myTicket = result.ticket; this.myWindow = result.window; this.state = result.state; this.busy = false; }, error: () => { this.error = 'No se pudo emitir el turno. Intenta de nuevo.'; this.busy = false; } });
+    this.http.post<{ticket: string; window: number | null; state: QueueState}>(`${API_URL}/tickets`, {}).subscribe({ next: result => { this.myTicket = result.ticket; this.myWindow = result.window; this.state = result.state; this.busy = false; }, error: () => { this.error = 'No se pudo emitir el turno. Intenta de nuevo.'; this.busy = false; } });
   }
   finish(window: number): void {
     this.finishing = window; this.error = '';
-    this.http.post<{state: QueueState}>('/api/finish', {window}).subscribe({ next: result => { this.state = result.state; this.finishing = null; }, error: () => { this.error = 'No se pudo finalizar la atención.'; this.finishing = null; } });
+    this.http.post<{state: QueueState}>(`${API_URL}/finish`, {window}).subscribe({ next: result => { this.state = result.state; this.finishing = null; }, error: () => { this.error = 'No se pudo finalizar la atención.'; this.finishing = null; } });
   }
   ngOnDestroy(): void { this.poll?.unsubscribe(); }
 }
+
